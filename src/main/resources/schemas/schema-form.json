@@ -1,0 +1,63 @@
+{
+  "type" : "object",
+  "id" : "urn:jsonschema:io:gravitee:policy:metricsreporter:configuration:MetricsReporterPolicyConfiguration",
+  "properties" : {
+    "method" : {
+      "title": "HTTP Method",
+      "description": "HTTP method to invoke the endpoint.",
+      "type" : "string",
+      "default": "POST",
+      "enum" : [ "POST", "PUT", "PATCH" ]
+    },
+    "url": {
+      "title": "URL",
+      "type" : "string"
+    },
+    "useSystemProxy": {
+      "title": "Use system proxy",
+      "description": "Use the configured system proxy.",
+      "type": "boolean"
+    },
+    "headers" : {
+      "type" : "array",
+      "title": "Request Headers",
+      "items" : {
+        "type" : "object",
+        "id" : "urn:jsonschema:io:gravitee:policy:metricsreporter:configuration:HttpHeader",
+        "title": "Header",
+        "properties" : {
+          "name" : {
+            "title": "Name",
+            "type" : "string"
+          },
+          "value" : {
+            "title": "Value",
+            "type" : "string"
+          }
+        }
+      },
+      "required": [
+        "name",
+        "value"
+      ]
+    },
+    "body" : {
+      "title": "Request body",
+      "type" : "string",
+      "x-schema-form": {
+        "type": "codemirror",
+        "codemirrorOptions": {
+          "placeholder": "Put request body here",
+          "lineWrapping": true,
+          "lineNumbers": true,
+          "allowDropFileTypes": true,
+          "autoCloseTags": true
+        }
+      }
+    }
+  },"required": [
+      "url",
+      "method",
+      "body"
+  ]
+}
