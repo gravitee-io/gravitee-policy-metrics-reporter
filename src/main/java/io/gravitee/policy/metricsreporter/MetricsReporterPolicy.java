@@ -29,6 +29,7 @@ import io.gravitee.policy.metricsreporter.metrics.AttributesBasedExecutionContex
 import io.gravitee.policy.metricsreporter.metrics.RequestMetrics;
 import io.gravitee.policy.metricsreporter.metrics.ResponseMetrics;
 import io.gravitee.policy.metricsreporter.utils.Sha1;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
@@ -103,50 +104,54 @@ public class MetricsReporterPolicy {
       payload = io.vertx.core.buffer.Buffer.buffer(writer.toString());
     } catch (IOException | TemplateException ex) {}
 
-    if (payload != null) {
-      String url = context.getTemplateEngine().convert(configuration.getUrl());
+    String url = context.getTemplateEngine().convert(configuration.getUrl());
 
-      HttpClientRequest httpRequest = httpClient
-        .requestAbs(convert(configuration.getMethod()), url)
-        .handler(
-          new Handler<HttpClientResponse>() {
-            @Override
-            public void handle(HttpClientResponse response) {}
+    RequestOptions requestOpts = new RequestOptions()
+      .setAbsoluteURI(url)
+      .setMethod(convert(configuration.getMethod()));
+
+    if (configuration.getHeaders() != null) {
+      configuration
+        .getHeaders()
+        .forEach(
+          header -> {
+            try {
+              String extValue = (header.getValue() != null)
+                ? context.getTemplateEngine().convert(header.getValue())
+                : null;
+              if (extValue != null) {
+                requestOpts.putHeader(header.getName(), extValue);
+              }
+            } catch (Exception ex) {
+              // Do nothing
+            }
           }
         );
+    }
 
-      if (configuration.getHeaders() != null) {
-        configuration
-          .getHeaders()
-          .forEach(
-            header -> {
-              try {
-                String extValue = (header.getValue() != null)
-                  ? context.getTemplateEngine().convert(header.getValue())
-                  : null;
-                if (extValue != null) {
-                  httpRequest.putHeader(header.getName(), extValue);
-                }
-              } catch (Exception ex) {
-                // Do nothing
-              }
-            }
-          );
-      }
-
+    if (payload != null) {
       if (
         configuration.getBody() != null && !configuration.getBody().isEmpty()
       ) {
-        httpRequest.headers().remove(HttpHeaders.TRANSFER_ENCODING);
-        httpRequest.putHeader(
+        requestOpts.putHeader(
           HttpHeaders.CONTENT_LENGTH,
           Integer.toString(payload.length())
         );
-        httpRequest.end(payload);
-      } else {
-        httpRequest.end();
       }
     }
+
+    Future<HttpClientRequest> reqFuture = httpClient.request(requestOpts);
+
+    io.vertx.core.buffer.Buffer finalPayload = payload;
+    reqFuture.onSuccess(
+      request -> {
+        if ((finalPayload != null)) {
+          request.end(finalPayload);
+        } else {
+          request.end();
+        }
+      }
+    );
   }
 
   private HttpClient getOrCreateClient(ExecutionContext context) {
@@ -266,26 +271,12 @@ public class MetricsReporterPolicy {
 
   private HttpMethod convert(io.gravitee.common.http.HttpMethod httpMethod) {
     switch (httpMethod) {
-      case CONNECT:
-        return HttpMethod.CONNECT;
-      case DELETE:
-        return HttpMethod.DELETE;
-      case GET:
-        return HttpMethod.GET;
-      case HEAD:
-        return HttpMethod.HEAD;
-      case OPTIONS:
-        return HttpMethod.OPTIONS;
       case PATCH:
         return HttpMethod.PATCH;
       case POST:
         return HttpMethod.POST;
       case PUT:
         return HttpMethod.PUT;
-      case TRACE:
-        return HttpMethod.TRACE;
-      case OTHER:
-        return HttpMethod.OTHER;
     }
 
     return null;
