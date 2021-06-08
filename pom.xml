@@ -22,7 +22,7 @@
 
     <groupId>io.gravitee.policy</groupId>
     <artifactId>gravitee-policy-metrics-reporter</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
 
     <name>Gravitee.io APIM - Policy - Metrics Reporter</name>
     <description>Description of the Assign metrics Policy</description>
@@ -34,10 +34,10 @@
     </parent>
 
     <properties>
-        <gravitee-gateway-api.version>1.24.0-SNAPSHOT</gravitee-gateway-api.version>
+        <gravitee-gateway-api.version>1.24.0</gravitee-gateway-api.version>
         <gravitee-policy-api.version>1.10.0</gravitee-policy-api.version>
         <gravitee-plugin-api.version>1.10.0</gravitee-plugin-api.version>
-        <gravitee-node-api.version>1.6.0</gravitee-node-api.version>
+        <gravitee-node-api.version>1.6.6</gravitee-node-api.version>
 
         <maven-assembly-plugin.version>2.5.5</maven-assembly-plugin.version>
         <freemarker.version>2.3.31</freemarker.version>
