@@ -15,7 +15,6 @@
  */
 package io.gravitee.policy.metricsreporter;
 
-import freemarker.cache.StringTemplateLoader;
 import freemarker.core.TemplateClassResolver;
 import freemarker.template.*;
 import io.gravitee.gateway.api.ExecutionContext;
@@ -24,6 +23,7 @@ import io.gravitee.gateway.api.stream.BufferedReadWriteStream;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.policy.api.annotations.OnResponseContent;
 import io.gravitee.policy.metricsreporter.configuration.MetricsReporterPolicyConfiguration;
+import io.gravitee.policy.metricsreporter.freemarker.CustomTemplateLoader;
 import io.gravitee.policy.metricsreporter.freemarker.LegacyDefaultMemberAccessPolicy;
 import io.gravitee.policy.metricsreporter.metrics.AttributesBasedExecutionContext;
 import io.gravitee.policy.metricsreporter.metrics.RequestMetrics;
@@ -62,7 +62,8 @@ public class MetricsReporterPolicy {
 
   private final MetricsReporterPolicyConfiguration configuration;
 
-  private static final ConcurrentMap<String, HttpClient> clients = new ConcurrentHashMap<>();
+  private HttpClient client;
+  private static final CustomTemplateLoader templateLoader = new CustomTemplateLoader();
   private static final Configuration templateConfiguration = loadConfiguration();
 
   public MetricsReporterPolicy(
@@ -155,10 +156,17 @@ public class MetricsReporterPolicy {
   }
 
   private HttpClient getOrCreateClient(ExecutionContext context) {
-    return clients.computeIfAbsent(
-      configuration.getUrl(),
-      url -> createClient(context)
-    );
+    if (client == null) {
+      // Synchronization should not occur more than few times in case of high throughput.
+      synchronized (this) {
+        // Avoid create multiple clients by double checking the client nullability.
+        if (client == null) {
+          client = createClient(context);
+        }
+      }
+    }
+
+    return client;
   }
 
   private HttpClient createClient(ExecutionContext context) {
@@ -204,19 +212,14 @@ public class MetricsReporterPolicy {
     configuration.setObjectWrapper(objectWrapperBuilder.build());
 
     // Load inline templates
-    configuration.setTemplateLoader(new StringTemplateLoader());
+    configuration.setTemplateLoader(templateLoader);
 
     return configuration;
   }
 
   Template getTemplate(String template) throws IOException {
-    StringTemplateLoader loader = (StringTemplateLoader) templateConfiguration.getTemplateLoader();
     String hash = Sha1.sha1(template);
-    Object source = loader.findTemplateSource(hash);
-    if (source == null) {
-      loader.putTemplate(hash, template);
-    }
-
+    templateLoader.putIfAbsent(hash, template);
     return templateConfiguration.getTemplate(hash);
   }
 

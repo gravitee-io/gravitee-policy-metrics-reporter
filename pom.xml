@@ -42,6 +42,7 @@
 
         <maven-assembly-plugin.version>2.5.5</maven-assembly-plugin.version>
         <freemarker.version>2.3.31</freemarker.version>
+        <guava.version>30.1.1-jre</guava.version>
 
         <mockito.version>3.5.13</mockito.version>
     </properties>
@@ -107,6 +108,13 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
             <scope>provided</scope>
         </dependency>
 
