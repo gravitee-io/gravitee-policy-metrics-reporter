@@ -15,7 +15,6 @@
  */
 package io.gravitee.policy.metricsreporter.metrics;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.reporter.api.http.Metrics;
 
@@ -41,8 +40,8 @@ public class ResponseMetrics {
     return response.reason();
   }
 
-  public HttpHeaders getHeaders() {
-    return response.headers();
+  public HeaderMapAdapter getHeaders() {
+    return new HeaderMapAdapter(response.headers());
   }
 
   public long getContentLength() {

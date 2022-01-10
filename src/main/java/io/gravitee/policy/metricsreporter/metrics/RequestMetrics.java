@@ -15,7 +15,6 @@
  */
 package io.gravitee.policy.metricsreporter.metrics;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.gateway.api.Request;
@@ -65,8 +64,8 @@ public class RequestMetrics {
     return request.localAddress();
   }
 
-  public HttpHeaders getHeaders() {
-    return request.headers();
+  public HeaderMapAdapter getHeaders() {
+    return new HeaderMapAdapter(request.headers());
   }
 
   public MultiValueMap<String, String> getParams() {
