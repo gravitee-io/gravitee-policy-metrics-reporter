@@ -1,5 +1,9 @@
 = Metrics Reporter policy
 
+ifdef::env-github[]
+endif::[]
+
+
 == Phase
 
 [cols="^2,^2,^2,^2",options="header"]
