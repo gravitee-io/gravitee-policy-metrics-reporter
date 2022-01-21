@@ -24,27 +24,27 @@ import io.gravitee.reporter.api.http.Metrics;
  */
 public class ResponseMetrics {
 
-  private final Response response;
-  private final Metrics metrics;
+    private final Response response;
+    private final Metrics metrics;
 
-  public ResponseMetrics(Response response, Metrics metrics) {
-    this.response = response;
-    this.metrics = metrics;
-  }
+    public ResponseMetrics(Response response, Metrics metrics) {
+        this.response = response;
+        this.metrics = metrics;
+    }
 
-  public int getStatusCode() {
-    return response.status();
-  }
+    public int getStatusCode() {
+        return response.status();
+    }
 
-  public String getStatusReason() {
-    return response.reason();
-  }
+    public String getStatusReason() {
+        return response.reason();
+    }
 
-  public HeaderMapAdapter getHeaders() {
-    return new HeaderMapAdapter(response.headers());
-  }
+    public HeaderMapAdapter getHeaders() {
+        return new HeaderMapAdapter(response.headers());
+    }
 
-  public long getContentLength() {
-    return metrics.getResponseContentLength();
-  }
+    public long getContentLength() {
+        return metrics.getResponseContentLength();
+    }
 }
