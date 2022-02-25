@@ -25,31 +25,31 @@ import java.util.Map;
  */
 public class AttributesBasedExecutionContext {
 
-  private static final String CONTEXT_DICTIONARIES_VARIABLE = "dictionaries";
-  private final ExecutionContext context;
-  private final Map<String, Object> attributes = new AttributeMap();
+    private static final String CONTEXT_DICTIONARIES_VARIABLE = "dictionaries";
+    private final ExecutionContext context;
+    private final Map<String, Object> attributes = new AttributeMap();
 
-  public AttributesBasedExecutionContext(final ExecutionContext context) {
-    this.context = context;
-  }
-
-  public Map<String, Map<String, String>> getDictionaries() {
-    return (Map<String, Map<String, String>>) this.context.getTemplateEngine()
-      .getTemplateContext()
-      .lookupVariable(CONTEXT_DICTIONARIES_VARIABLE);
-  }
-
-  public Object getAttributes() {
-    return attributes;
-  }
-
-  private class AttributeMap extends HashMap<String, Object> {
-
-    AttributeMap() {}
-
-    @Override
-    public Object get(Object key) {
-      return context.getAttribute((String) key);
+    public AttributesBasedExecutionContext(final ExecutionContext context) {
+        this.context = context;
     }
-  }
+
+    public Map<String, Map<String, String>> getDictionaries() {
+        return (Map<String, Map<String, String>>) this.context.getTemplateEngine()
+            .getTemplateContext()
+            .lookupVariable(CONTEXT_DICTIONARIES_VARIABLE);
+    }
+
+    public Object getAttributes() {
+        return attributes;
+    }
+
+    private class AttributeMap extends HashMap<String, Object> {
+
+        AttributeMap() {}
+
+        @Override
+        public Object get(Object key) {
+            return context.getAttribute((String) key);
+        }
+    }
 }

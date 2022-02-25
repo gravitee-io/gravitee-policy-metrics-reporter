@@ -26,53 +26,53 @@ import java.util.List;
  */
 public class MetricsReporterPolicyConfiguration implements PolicyConfiguration {
 
-  private String url;
+    private String url;
 
-  private List<HttpHeader> headers = new ArrayList<>();
+    private List<HttpHeader> headers = new ArrayList<>();
 
-  private String body;
+    private String body;
 
-  private HttpMethod method;
+    private HttpMethod method;
 
-  private boolean useSystemProxy;
+    private boolean useSystemProxy;
 
-  public String getUrl() {
-    return url;
-  }
+    public String getUrl() {
+        return url;
+    }
 
-  public void setUrl(String url) {
-    this.url = url;
-  }
+    public void setUrl(String url) {
+        this.url = url;
+    }
 
-  public List<HttpHeader> getHeaders() {
-    return headers;
-  }
+    public List<HttpHeader> getHeaders() {
+        return headers;
+    }
 
-  public void setHeaders(List<HttpHeader> headers) {
-    this.headers = headers;
-  }
+    public void setHeaders(List<HttpHeader> headers) {
+        this.headers = headers;
+    }
 
-  public String getBody() {
-    return body;
-  }
+    public String getBody() {
+        return body;
+    }
 
-  public void setBody(String body) {
-    this.body = body;
-  }
+    public void setBody(String body) {
+        this.body = body;
+    }
 
-  public HttpMethod getMethod() {
-    return method;
-  }
+    public HttpMethod getMethod() {
+        return method;
+    }
 
-  public void setMethod(HttpMethod method) {
-    this.method = method;
-  }
+    public void setMethod(HttpMethod method) {
+        this.method = method;
+    }
 
-  public void setUseSystemProxy(boolean useSystemProxy) {
-    this.useSystemProxy = useSystemProxy;
-  }
+    public void setUseSystemProxy(boolean useSystemProxy) {
+        this.useSystemProxy = useSystemProxy;
+    }
 
-  public boolean isUseSystemProxy() {
-    return useSystemProxy;
-  }
+    public boolean isUseSystemProxy() {
+        return useSystemProxy;
+    }
 }
