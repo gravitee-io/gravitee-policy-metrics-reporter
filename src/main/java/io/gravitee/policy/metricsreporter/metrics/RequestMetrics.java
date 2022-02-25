@@ -27,57 +27,57 @@ import io.gravitee.reporter.api.http.Metrics;
  */
 public class RequestMetrics {
 
-  private final Request request;
+    private final Request request;
 
-  public RequestMetrics(Request request) {
-    this.request = request;
-  }
+    public RequestMetrics(Request request) {
+        this.request = request;
+    }
 
-  public String getId() {
-    return request.id();
-  }
+    public String getId() {
+        return request.id();
+    }
 
-  public String getTransactionId() {
-    return request.transactionId();
-  }
+    public String getTransactionId() {
+        return request.transactionId();
+    }
 
-  public HttpMethod getMethod() {
-    return request.method();
-  }
+    public HttpMethod getMethod() {
+        return request.method();
+    }
 
-  public String getUri() {
-    return request.uri();
-  }
+    public String getUri() {
+        return request.uri();
+    }
 
-  public String getPath() {
-    return request.path();
-  }
+    public String getPath() {
+        return request.path();
+    }
 
-  public String getScheme() {
-    return request.scheme();
-  }
+    public String getScheme() {
+        return request.scheme();
+    }
 
-  public String getRemoteAddress() {
-    return request.remoteAddress();
-  }
+    public String getRemoteAddress() {
+        return request.remoteAddress();
+    }
 
-  public String getLocalAddress() {
-    return request.localAddress();
-  }
+    public String getLocalAddress() {
+        return request.localAddress();
+    }
 
-  public HttpHeaders getHeaders() {
-    return request.headers();
-  }
+    public HttpHeaders getHeaders() {
+        return request.headers();
+    }
 
-  public MultiValueMap<String, String> getParams() {
-    return request.parameters();
-  }
+    public MultiValueMap<String, String> getParams() {
+        return request.parameters();
+    }
 
-  public long getContentLength() {
-    return request.metrics().getRequestContentLength();
-  }
+    public long getContentLength() {
+        return request.metrics().getRequestContentLength();
+    }
 
-  public Metrics getMetrics() {
-    return request.metrics();
-  }
+    public Metrics getMetrics() {
+        return request.metrics();
+    }
 }
