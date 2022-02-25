@@ -76,8 +76,8 @@ public class MetricsReporterPolicy {
                 // Ensure everything has been pushed back to the client
                 super.end();
 
-                // Then push metrics
-                reportMetrics(context);
+                // We must push the report metrics execution to vertx event queue to make sure this will happen after response end is flushed to the client
+                context.getComponent(Vertx.class).runOnContext(aVoid -> reportMetrics(context));
             }
         };
     }
