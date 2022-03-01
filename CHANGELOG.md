@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/compare/1.2.0...1.2.1) (2022-03-01)
+
+
+### Bug Fixes
+
+* put reportMetrics execution in vertx event queue ([79339ec](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/commit/79339ec1be3def955f2028d7d44b029977aee885))
+
 # [1.2.0](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/compare/[secure]...1.2.0) (2022-01-21)
 
 
