@@ -30,7 +30,6 @@ import io.gravitee.policy.metricsreporter.metrics.RequestMetrics;
 import io.gravitee.policy.metricsreporter.metrics.ResponseMetrics;
 import io.gravitee.policy.metricsreporter.utils.Sha1;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
 import io.vertx.core.net.ProxyOptions;
@@ -42,8 +41,6 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
@@ -105,18 +102,16 @@ public class MetricsReporterPolicy {
         if (configuration.getHeaders() != null) {
             configuration
                 .getHeaders()
-                .forEach(
-                    header -> {
-                        try {
-                            String extValue = (header.getValue() != null) ? context.getTemplateEngine().convert(header.getValue()) : null;
-                            if (extValue != null) {
-                                requestOpts.putHeader(header.getName(), extValue);
-                            }
-                        } catch (Exception ex) {
-                            // Do nothing
+                .forEach(header -> {
+                    try {
+                        String extValue = (header.getValue() != null) ? context.getTemplateEngine().convert(header.getValue()) : null;
+                        if (extValue != null) {
+                            requestOpts.putHeader(header.getName(), extValue);
                         }
+                    } catch (Exception ex) {
+                        // Do nothing
                     }
-                );
+                });
         }
 
         if (payload != null) {
@@ -128,15 +123,13 @@ public class MetricsReporterPolicy {
         Future<HttpClientRequest> reqFuture = httpClient.request(requestOpts);
 
         io.vertx.core.buffer.Buffer finalPayload = payload;
-        reqFuture.onSuccess(
-            request -> {
-                if ((finalPayload != null)) {
-                    request.end(finalPayload);
-                } else {
-                    request.end();
-                }
+        reqFuture.onSuccess(request -> {
+            if ((finalPayload != null)) {
+                request.end(finalPayload);
+            } else {
+                request.end();
             }
-        );
+        });
     }
 
     private HttpClient getOrCreateClient(ExecutionContext context) {
