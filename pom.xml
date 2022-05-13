@@ -35,10 +35,11 @@
 
     <properties>
         <gravitee-bom.version>1.0</gravitee-bom.version>
+        <gravitee-common.version>1.26.1</gravitee-common.version>
         <gravitee-gateway-api.version>1.31.0</gravitee-gateway-api.version>
         <gravitee-policy-api.version>1.10.0</gravitee-policy-api.version>
         <gravitee-plugin-api.version>1.10.0</gravitee-plugin-api.version>
-        <gravitee-node-api.version>1.6.6</gravitee-node-api.version>
+        <gravitee-node-api.version>1.23.0</gravitee-node-api.version>
 
         <maven-assembly-plugin.version>2.5.5</maven-assembly-plugin.version>
         <freemarker.version>2.3.31</freemarker.version>
@@ -64,6 +65,13 @@
 
     <dependencies>
         <!-- Gravitee.io dependencies -->
+        <dependency>
+            <groupId>io.gravitee.common</groupId>
+            <artifactId>gravitee-common</artifactId>
+            <version>${gravitee-common.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>io.gravitee.gateway</groupId>
             <artifactId>gravitee-gateway-api</artifactId>
