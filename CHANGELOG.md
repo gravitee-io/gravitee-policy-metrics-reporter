@@ -1,3 +1,15 @@
+# [2.0.0](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/compare/1.2.2...2.0.0) (2022-05-24)
+
+
+### Code Refactoring
+
+* use common vertx proxy options factory ([4802685](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/commit/480268521c169c90a2a608e90b828bd380406392))
+
+
+### BREAKING CHANGES
+
+* this version requires APIM in version 3.18 and upper
+
 ## [1.2.2](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/compare/1.2.1...1.2.2) (2022-04-28)
 
 
