@@ -34,17 +34,15 @@
     <description>Description of the Assign metrics Policy</description>
 
     <properties>
-        <gravitee-bom.version>1.0</gravitee-bom.version>
-        <gravitee-common.version>1.26.1</gravitee-common.version>
-        <gravitee-gateway-api.version>1.31.0</gravitee-gateway-api.version>
-        <gravitee-policy-api.version>1.10.0</gravitee-policy-api.version>
-        <gravitee-plugin-api.version>1.10.0</gravitee-plugin-api.version>
-        <gravitee-node-api.version>1.23.0</gravitee-node-api.version>
+        <gravitee-bom.version>4.0.1</gravitee-bom.version>
+        <gravitee-common.version>2.1.0</gravitee-common.version>
+        <gravitee-gateway-api.version>2.1.0</gravitee-gateway-api.version>
+        <gravitee-policy-api.version>1.11.0</gravitee-policy-api.version>
+        <gravitee-plugin-api.version>1.26.1</gravitee-plugin-api.version>
+        <gravitee-node-api.version>3.0.6</gravitee-node-api.version>
 
-        <freemarker.version>2.3.31</freemarker.version>
+        <freemarker.version>2.3.32</freemarker.version>
         <guava.version>30.1.1-jre</guava.version>
-
-        <mockito.version>3.5.13</mockito.version>
 
         <maven-plugin-assembly.version>3.5.0</maven-plugin-assembly.version>
         <maven-plugin-prettier.version>0.19</maven-plugin-prettier.version>
@@ -134,18 +132,6 @@
         </dependency>
 
         <!-- Test scope -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>${mockito.version}</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
