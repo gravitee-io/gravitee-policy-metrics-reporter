@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/compare/2.0.0...2.0.1) (2023-07-20)
+
+
+### Bug Fixes
+
+* update policy description ([2739382](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/commit/273938266c4f0566e1e32b9baa6cf2182db32c84))
+
 # [2.0.0](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/compare/1.2.2...2.0.0) (2022-05-24)
 
 
