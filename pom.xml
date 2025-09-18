@@ -42,7 +42,7 @@
         <gravitee-node-api.version>3.0.6</gravitee-node-api.version>
 
         <freemarker.version>2.3.32</freemarker.version>
-        <guava.version>30.1.1-jre</guava.version>
+        <guava.version>33.5.0-jre</guava.version>
 
         <maven-plugin-assembly.version>3.5.0</maven-plugin-assembly.version>
         <maven-plugin-prettier.version>0.19</maven-plugin-prettier.version>
