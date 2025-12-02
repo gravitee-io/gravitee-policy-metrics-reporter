@@ -1,11 +1,11 @@
-/**
- * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,14 +15,17 @@
  */
 package io.gravitee.policy.metricsreporter;
 
-import static io.gravitee.common.util.VertxProxyOptionsUtils.*;
-
 import freemarker.core.TemplateClassResolver;
-import freemarker.template.*;
+import freemarker.template.Configuration;
+import freemarker.template.DefaultObjectWrapperBuilder;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
+import freemarker.template.TemplateExceptionHandler;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.stream.BufferedReadWriteStream;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
+import io.gravitee.node.vertx.proxy.VertxProxyOptionsUtils;
 import io.gravitee.policy.api.annotations.OnResponseContent;
 import io.gravitee.policy.metricsreporter.configuration.MetricsReporterPolicyConfiguration;
 import io.gravitee.policy.metricsreporter.freemarker.CustomTemplateLoader;
@@ -156,11 +159,11 @@ public class MetricsReporterPolicy {
         }
 
         if (configuration.isUseSystemProxy()) {
-            io.gravitee.node.api.configuration.Configuration configuration = context.getComponent(
+            io.gravitee.node.api.configuration.Configuration nodeConfig = context.getComponent(
                 io.gravitee.node.api.configuration.Configuration.class
             );
             try {
-                setSystemProxy(options, configuration);
+                options.setProxyOptions(VertxProxyOptionsUtils.buildProxyOptions(nodeConfig));
             } catch (IllegalStateException e) {
                 LOGGER.warn(
                     "Metrics reporter requires a system proxy to be defined but some configurations are missing or not well defined: {}. Ignoring proxy",
