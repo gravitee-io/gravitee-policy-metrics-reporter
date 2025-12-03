@@ -25,7 +25,12 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.stream.BufferedReadWriteStream;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
+import io.gravitee.node.container.spring.SpringEnvironmentConfiguration;
+import io.gravitee.node.vertx.client.http.VertxHttpClientFactory;
 import io.gravitee.node.vertx.proxy.VertxProxyOptionsUtils;
+import io.gravitee.plugin.mappers.HttpClientOptionsMapper;
+import io.gravitee.plugin.mappers.HttpProxyOptionsMapper;
+import io.gravitee.plugin.mappers.SslOptionsMapper;
 import io.gravitee.policy.api.annotations.OnResponseContent;
 import io.gravitee.policy.metricsreporter.configuration.MetricsReporterPolicyConfiguration;
 import io.gravitee.policy.metricsreporter.freemarker.CustomTemplateLoader;
@@ -148,31 +153,19 @@ public class MetricsReporterPolicy {
     }
 
     private HttpClient createClient(ExecutionContext context) {
-        Vertx vertx = context.getComponent(Vertx.class);
-
         String url = context.getTemplateEngine().convert(configuration.getUrl());
         URI target = URI.create(url);
 
-        HttpClientOptions options = new HttpClientOptions();
-        if (HTTPS_SCHEME.equalsIgnoreCase(target.getScheme())) {
-            options.setSsl(true).setTrustAll(true).setVerifyHost(false);
-        }
-
-        if (configuration.isUseSystemProxy()) {
-            io.gravitee.node.api.configuration.Configuration nodeConfig = context.getComponent(
-                io.gravitee.node.api.configuration.Configuration.class
-            );
-            try {
-                options.setProxyOptions(VertxProxyOptionsUtils.buildProxyOptions(nodeConfig));
-            } catch (IllegalStateException e) {
-                LOGGER.warn(
-                    "Metrics reporter requires a system proxy to be defined but some configurations are missing or not well defined: {}. Ignoring proxy",
-                    e.getMessage()
-                );
-            }
-        }
-
-        return vertx.createHttpClient(options);
+        return VertxHttpClientFactory.builder()
+            .vertx(context.getComponent(io.vertx.rxjava3.core.Vertx.class))
+            .nodeConfiguration(context.getComponent(io.gravitee.node.api.configuration.Configuration.class))
+            .defaultTarget(target.toString())
+            .httpOptions(HttpClientOptionsMapper.INSTANCE.map(configuration.getHttpClientOptions()))
+            .sslOptions(SslOptionsMapper.INSTANCE.map(configuration.getSslOptions()))
+            .proxyOptions(HttpProxyOptionsMapper.INSTANCE.map(configuration.getHttpProxyOptions()))
+            .build()
+            .createHttpClient()
+            .getDelegate();
     }
 
     private static Configuration loadConfiguration() {

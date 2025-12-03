@@ -36,8 +36,7 @@ public class CustomTemplateLoader implements TemplateLoader {
      */
     private static final int CACHE_MAXIMUM_SIZE = 1000;
 
-    private final Cache<Object, Object> templates = CacheBuilder
-        .newBuilder()
+    private final Cache<Object, Object> templates = CacheBuilder.newBuilder()
         .maximumSize(CACHE_MAXIMUM_SIZE)
         .expireAfterAccess(Duration.ofHours(CACHE_EXPIRATION_HOURS))
         .build();

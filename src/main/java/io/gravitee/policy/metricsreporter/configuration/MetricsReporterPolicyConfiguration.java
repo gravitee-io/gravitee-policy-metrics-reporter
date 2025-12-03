@@ -15,15 +15,23 @@
  */
 package io.gravitee.policy.metricsreporter.configuration;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.plugin.configurations.http.HttpClientOptions;
+import io.gravitee.plugin.configurations.http.HttpProxyOptions;
+import io.gravitee.plugin.configurations.ssl.SslOptions;
 import io.gravitee.policy.api.PolicyConfiguration;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.Setter;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Data
 public class MetricsReporterPolicyConfiguration implements PolicyConfiguration {
 
     private String url;
@@ -34,45 +42,26 @@ public class MetricsReporterPolicyConfiguration implements PolicyConfiguration {
 
     private HttpMethod method;
 
+    @Setter(AccessLevel.NONE)
     private boolean useSystemProxy;
 
-    public String getUrl() {
-        return url;
-    }
+    @JsonProperty("http")
+    private HttpClientOptions httpClientOptions = new HttpClientOptions();
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
+    @JsonProperty("proxy")
+    private HttpProxyOptions httpProxyOptions = new HttpProxyOptions();
 
-    public List<HttpHeader> getHeaders() {
-        return headers;
-    }
-
-    public void setHeaders(List<HttpHeader> headers) {
-        this.headers = headers;
-    }
-
-    public String getBody() {
-        return body;
-    }
-
-    public void setBody(String body) {
-        this.body = body;
-    }
-
-    public HttpMethod getMethod() {
-        return method;
-    }
-
-    public void setMethod(HttpMethod method) {
-        this.method = method;
-    }
+    @JsonProperty("ssl")
+    private SslOptions sslOptions = new SslOptions();
 
     public void setUseSystemProxy(boolean useSystemProxy) {
         this.useSystemProxy = useSystemProxy;
-    }
-
-    public boolean isUseSystemProxy() {
-        return useSystemProxy;
+        // smooth migration: older versions of the plugin didn't have the httpProxyOptions property,
+        // so we simply set the httpProxyOptions.enabled and httpProxyOptions.setUseSystemProxy property
+        // to avoid huge data migration.
+        if (useSystemProxy) {
+            this.httpProxyOptions.setEnabled(true);
+            this.httpProxyOptions.setUseSystemProxy(true);
+        }
     }
 }
