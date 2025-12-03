@@ -83,18 +83,17 @@ class MetricsReporterPolicyV3IntegrationTest extends AbstractPolicyTest<MetricsR
             .atMost(5, TimeUnit.SECONDS)
             .untilAsserted(() ->
                 metricsServer.verify(
-                    postRequestedFor(urlPathEqualTo("/metrics"))
-                        .withRequestBody(
-                            equalToJson(
-                                """
-                                    {
-                                      "id": "static-id",
-                                      "method": "GET",
-                                      "status": "200"
-                                    }
-                                    """
-                            )
+                    postRequestedFor(urlPathEqualTo("/metrics")).withRequestBody(
+                        equalToJson(
+                            """
+                            {
+                              "id": "static-id",
+                              "method": "GET",
+                              "status": "200"
+                            }
+                            """
                         )
+                    )
                 )
             );
     }
