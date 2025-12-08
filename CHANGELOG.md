@@ -1,3 +1,20 @@
+# [3.0.0](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/compare/2.0.1...3.0.0) (2025-12-08)
+
+
+### chore
+
+* bump gravitee parent to 23.5.0 for APIM 4.10.0 compatibility ([caf8409](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/commit/caf8409417d0f143f190436d66670a1898069a36))
+
+
+### Features
+
+* use common http client, http proxy and ssl configuration ([8011834](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/commit/8011834ca5aef09b22568f2df1d8347f86995ae3))
+
+
+### BREAKING CHANGES
+
+* bump gravitee parent
+
 ## [2.0.1](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/compare/2.0.0...2.0.1) (2023-07-20)
 
 
