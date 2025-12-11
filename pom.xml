@@ -37,7 +37,7 @@
         <gravitee-apim.version>4.10.0-SNAPSHOT</gravitee-apim.version>
         <gravitee-expression-language.version>4.2.0</gravitee-expression-language.version>
         <gravitee-plugin-common-configurations.version>1.0.0-alpha.4</gravitee-plugin-common-configurations.version>
-        <gravitee-plugin-common-configurations-maven-plugin.version>1.0.0-alpha.3</gravitee-plugin-common-configurations-maven-plugin.version>
+        <gravitee-plugin-common-configurations-maven-plugin.version>1.0.0</gravitee-plugin-common-configurations-maven-plugin.version>
 
         <freemarker.version>2.3.32</freemarker.version>
         <guava.version>30.1.1-jre</guava.version>
