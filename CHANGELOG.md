@@ -1,3 +1,10 @@
+## [3.0.1](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/compare/3.0.0...3.0.1) (2025-12-12)
+
+
+### Bug Fixes
+
+* clean pom ([2293b31](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/commit/2293b31840f2f36d6fc9229b0fcdb8d1db3c55fa))
+
 # [3.0.0](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/compare/2.0.1...3.0.0) (2025-12-08)
 
 
