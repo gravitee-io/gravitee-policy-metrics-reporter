@@ -49,4 +49,11 @@ class MetricsReporterPolicyV4IntegrationTest extends MetricsReporterPolicyV3Inte
     void should_report_metrics(HttpClient client) {
         super.should_report_metrics(client);
     }
+
+    @Override
+    @DeployApi("/apis/metrics-reporter-https-v4.json")
+    @Test
+    void should_report_metrics_over_https_with_ssl_options(HttpClient client) {
+        super.should_report_metrics_over_https_with_ssl_options(client);
+    }
 }
