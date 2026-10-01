@@ -47,11 +47,14 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 class MetricsReporterPolicyV3IntegrationTest extends AbstractPolicyTest<MetricsReporterPolicy, MetricsReporterPolicyConfiguration> {
 
     @RegisterExtension
-    static WireMockExtension metricsServer = WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
+    static WireMockExtension metricsServer = WireMockExtension.newInstance()
+        .options(wireMockConfig().dynamicPort().dynamicHttpsPort())
+        .build();
 
     @Override
     public void configurePlaceHolderVariables(Map<String, String> variables) {
         variables.put("METRICS_SERVER", "http://localhost:" + metricsServer.getPort() + "/metrics");
+        variables.put("METRICS_SERVER_HTTPS", "https://localhost:" + metricsServer.getHttpsPort() + "/metrics-https");
     }
 
     @Test
@@ -60,23 +63,7 @@ class MetricsReporterPolicyV3IntegrationTest extends AbstractPolicyTest<MetricsR
         wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
         metricsServer.stubFor(post("/metrics").willReturn(ok("response from metrics server")));
 
-        client
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMapPublisher(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.toFlowable();
-            })
-            .test()
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertComplete()
-            .assertValue(response -> {
-                assertThat(response).hasToString("response from backend");
-                return true;
-            })
-            .assertNoErrors();
-
-        wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint")));
+        callApiAndAssertBackendResponse(client);
 
         // Metrics reported is done asynchronously, so we wait a little bit to be sure it's done
         await()
@@ -96,5 +83,49 @@ class MetricsReporterPolicyV3IntegrationTest extends AbstractPolicyTest<MetricsR
                     )
                 )
             );
+    }
+
+    @Test
+    @DeployApi("/apis/metrics-reporter-https.json")
+    void should_report_metrics_over_https_with_ssl_options(HttpClient client) {
+        wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
+        metricsServer.stubFor(post("/metrics-https").willReturn(ok("response from metrics server")));
+
+        callApiAndAssertBackendResponse(client);
+
+        // The metrics server presents a self-signed certificate. The default trust store rejects it, so the report
+        // only arrives if the `ssl` block of the policy configuration actually reaches the HTTP client.
+        await()
+            .atMost(5, TimeUnit.SECONDS)
+            .untilAsserted(() -> {
+                var reports = metricsServer.findAll(postRequestedFor(urlPathEqualTo("/metrics-https")));
+                assertThat(reports).hasSize(1);
+                assertThat(reports.get(0).getScheme()).isEqualTo("https");
+                assertThat(reports.get(0).getBodyAsString()).isEqualToIgnoringWhitespace(
+                    """
+                    {"id": "static-id", "method": "GET", "status": "200"}
+                    """
+                );
+            });
+    }
+
+    private void callApiAndAssertBackendResponse(HttpClient client) {
+        client
+            .rxRequest(HttpMethod.GET, "/test")
+            .flatMap(HttpClientRequest::rxSend)
+            .flatMapPublisher(response -> {
+                assertThat(response.statusCode()).isEqualTo(200);
+                return response.toFlowable();
+            })
+            .test()
+            .awaitDone(30, TimeUnit.SECONDS)
+            .assertComplete()
+            .assertValue(response -> {
+                assertThat(response).hasToString("response from backend");
+                return true;
+            })
+            .assertNoErrors();
+
+        wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint")));
     }
 }

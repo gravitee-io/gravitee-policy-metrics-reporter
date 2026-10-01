@@ -47,7 +47,8 @@ Example:
 |===
 | Plugin version | APIM version     | Java version
 
-| 3.x            | 4.9.x to latest  | 21
+| 4.x            | 4.12.x to latest | 21
+| 3.x            | 4.9.x to 4.11.x  | 21
 | 2.x            | 3.18.x to 4.8.x  | 11
 | 1.2.x          | 3.15.x to 3.17.x | 11
 | 1.1.x          | 3.10.x to 3.14.x | 11
@@ -55,6 +56,8 @@ Example:
 |===
 
 The *Java version* column is the bytecode level of the latest release of each line, which sets the minimum runtime able to load the artifact.
+
+The 3.x and 4.x lines are not interchangeable: use the line that matches your APIM version.
 
 == Properties
 
