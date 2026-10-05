@@ -1,3 +1,15 @@
+# [4.0.0](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/compare/3.0.1...4.0.0) (2026-10-05)
+
+
+### Bug Fixes
+
+* make the policy work with APIM 4.12 and later ([81cdbc1](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/commit/81cdbc1b33d159b546411495824d596e196dc41e))
+
+
+### BREAKING CHANGES
+
+* requires APIM 4.12 or later, APIM 4.9.x to 4.11.x must stay on 3.x
+
 ## [3.0.1](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/compare/3.0.0...3.0.1) (2025-12-12)
 
 
