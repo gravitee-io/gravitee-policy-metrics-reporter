@@ -1,3 +1,10 @@
+## [4.0.1](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/compare/4.0.0...4.0.1) (2026-10-06)
+
+
+### Bug Fixes
+
+* **deps:** bump gravitee-apim to 4.12.21 ([894b958](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/commit/894b958dfd350c63cb5e74ad5992e2b878a6c946))
+
 # [4.0.0](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/compare/3.0.1...4.0.0) (2026-10-05)
 
 
