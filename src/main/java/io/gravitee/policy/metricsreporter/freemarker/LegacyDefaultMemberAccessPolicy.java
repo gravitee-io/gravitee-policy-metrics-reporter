@@ -49,8 +49,8 @@ public final class LegacyDefaultMemberAccessPolicy implements MemberAccessPolicy
 
     public static final LegacyDefaultMemberAccessPolicy INSTANCE = new LegacyDefaultMemberAccessPolicy();
 
-    private static final String UNSAFE_METHODS_PROPERTIES = "/extendedUnsafeMethods.properties";
-    private static final String UNSAFE_CLASSES_PROPERTIES = "/extendedUnsafeClasses.properties";
+    static final String UNSAFE_METHODS_PROPERTIES = "/extendedUnsafeMethods.properties";
+    static final String UNSAFE_CLASSES_PROPERTIES = "/extendedUnsafeClasses.properties";
 
     private static final Set<Method> UNSAFE_METHODS = createUnsafeMethodsSet();
     private static final Set<String> UNSAFE_CLASS_NAMES;
@@ -84,7 +84,7 @@ public final class LegacyDefaultMemberAccessPolicy implements MemberAccessPolicy
                 try {
                     set.add(parseMethodSpec((String) key));
                 } catch (ClassNotFoundException | NoSuchMethodException e) {
-                    // do nothing (method may not exist in the running JDK)
+                    // Method removed from the running JDK: nothing to deny. Typos are caught by LegacyDefaultMemberAccessPolicyTest.
                 }
             }
             return set;
@@ -93,7 +93,7 @@ public final class LegacyDefaultMemberAccessPolicy implements MemberAccessPolicy
         }
     }
 
-    private static Method parseMethodSpec(String methodSpec) throws ClassNotFoundException, NoSuchMethodException {
+    static Method parseMethodSpec(String methodSpec) throws ClassNotFoundException, NoSuchMethodException {
         int brace = methodSpec.indexOf('(');
         int dot = methodSpec.lastIndexOf('.', brace);
         Class<?> clazz = ClassUtil.forName(methodSpec.substring(0, dot));
