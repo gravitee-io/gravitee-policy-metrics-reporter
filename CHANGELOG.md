@@ -1,3 +1,11 @@
+## [2.0.2](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/compare/2.0.1...2.0.2) (2026-11-20)
+
+
+### Bug Fixes
+
+* **deps:** bump freemarker to 2.3.35 ([9112332](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/commit/9112332878c0cdae023d68ba4edf43888077d9d1))
+* **freemarker:** harden template sandbox against reflection-based escapes ([87ffddf](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/commit/87ffddf635b24c13f8dbccea5e4ace15e7c93c94))
+
 ## [2.0.1](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/compare/2.0.0...2.0.1) (2023-07-20)
 
 
