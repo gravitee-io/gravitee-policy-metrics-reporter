@@ -20,6 +20,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import freemarker.core.ParseException;
+import freemarker.core.TemplateClassResolver;
+import freemarker.ext.beans.BeansWrapper;
+import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import io.gravitee.gateway.api.ExecutionContext;
@@ -60,6 +64,10 @@ class TemplateSandboxTest {
             StringWriter writer = new StringWriter();
             template.process(model, writer);
             return writer.toString();
+        }
+
+        static Configuration configuration() {
+            return templateConfiguration;
         }
     }
 
@@ -205,6 +213,82 @@ class TemplateSandboxTest {
                 model()
             )
         ).isInstanceOf(TemplateException.class);
+    }
+
+    /**
+     * The whole defense against <code>?new</code> / <code>?api</code> based payloads (e.g. CVE-2025-70830) relies on these settings.
+     */
+    @Test
+    void should_configure_freemarker_restrictively() {
+        Configuration configuration = TemplateRenderer.configuration();
+        assertThat(configuration.getNewBuiltinClassResolver()).isSameAs(TemplateClassResolver.ALLOWS_NOTHING_RESOLVER);
+        assertThat(configuration.isAPIBuiltinEnabled()).isFalse();
+        assertThat(configuration.getObjectWrapper()).isInstanceOf(BeansWrapper.class);
+        assertThat(((BeansWrapper) configuration.getObjectWrapper()).getMemberAccessPolicy()).isSameAs(
+            LegacyDefaultMemberAccessPolicy.INSTANCE
+        );
+    }
+
+    /**
+     * CVE-2025-70830 (Datart): FreeMarker SSTI → RCE through <code>ObjectConstructor?new()</code> + {@link ProcessBuilder}.
+     */
+    @Test
+    void should_block_cve_2025_70830_object_constructor_process_builder() {
+        Path marker = tempDir.resolve("pwned");
+        String payload = """
+            <#assign ob="freemarker.template.utility.ObjectConstructor"?new()>
+            <#assign pb=ob("java.lang.ProcessBuilder",["/bin/sh","-c","touch %s"])>
+            ${pb.start()}
+            """.formatted(marker.toAbsolutePath());
+
+        assertThatThrownBy(() -> renderer.render(payload, model()))
+            .isInstanceOf(TemplateException.class)
+            .hasMessageContaining("ObjectConstructor")
+            .hasMessageContaining("not allowed");
+        assertThat(Files.exists(marker)).isFalse();
+    }
+
+    /**
+     * CVE-2025-70830 (Datart), advanced variant: <code>ObjectConstructor?new()</code> + {@link javax.script.ScriptEngineManager}.
+     */
+    @Test
+    void should_block_cve_2025_70830_object_constructor_script_engine() {
+        String payload = """
+            <#assign ob='freemarker.template.utility.ObjectConstructor'?new()>
+            <#assign sem=ob('javax.script.ScriptEngineManager')>
+            <#assign engine=sem.getEngineByName('js')>
+            ${engine.eval('1+1')}
+            """;
+
+        assertThatThrownBy(() -> renderer.render(payload, model()))
+            .isInstanceOf(TemplateException.class)
+            .hasMessageContaining("ObjectConstructor")
+            .hasMessageContaining("not allowed");
+    }
+
+    /**
+     * Templates must not be able to re-enable what the configuration disables (<code>?new</code>, <code>?api</code>, object wrapper).
+     */
+    @ParameterizedTest
+    @ValueSource(
+        strings = {
+            "<#setting new_builtin_class_resolver='unrestricted'><#assign ob='freemarker.template.utility.ObjectConstructor'?new()>${ob('java.lang.ProcessBuilder','touch','%s').start()}",
+            "<#setting newBuiltinClassResolver='unrestricted'><#assign ex='freemarker.template.utility.Execute'?new()>${ex('touch %s')}",
+            "<#setting new_builtin_class_resolver='allows_nothing, freemarker.template.utility.Execute'><#assign ex='freemarker.template.utility.Execute'?new()>${ex('touch %s')}",
+            "<#setting api_builtin_enabled=true>${context?api.getClass().forName('java.lang.ProcessBuilder')} %s",
+            "<#setting object_wrapper='DefaultObjectWrapper(2.3.30)'>${context.getClass().forName('java.lang.ProcessBuilder')} %s",
+            "<#setting template_loader='freemarker.cache.FileTemplateLoader'>%s",
+            // Same payloads, evaluated dynamically
+            "<#assign t=r\"<#assign ex='freemarker.template.utility.Execute'?new()>${ex('touch %s')}\"?interpret><@t/>",
+            "${\"'freemarker.template.utility.Execute'?new()('touch %s')\"?eval}",
+        }
+    )
+    void should_not_allow_templates_to_relax_the_sandbox(String template) {
+        Path marker = tempDir.resolve("pwned");
+        String payload = template.formatted(marker.toAbsolutePath());
+
+        assertThatThrownBy(() -> renderer.render(payload, model())).isInstanceOfAny(TemplateException.class, ParseException.class);
+        assertThat(Files.exists(marker)).isFalse();
     }
 
     @Test
