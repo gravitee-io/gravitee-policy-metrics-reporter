@@ -21,12 +21,27 @@ import freemarker.template.utility.ClassUtil;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayDeque;
+import java.util.Collections;
+import java.util.Deque;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
 
 /**
+ * Member access policy used by the FreeMarker object wrapper of the policy.
+ *
+ * <p>It combines two deny-lists:</p>
+ * <ul>
+ *     <li><b>Unsafe methods</b> ({@value #UNSAFE_METHODS_PROPERTIES}): individual methods that are never exposed to templates
+ *     (e.g. {@link Object#getClass()}).</li>
+ *     <li><b>Unsafe classes</b> ({@value #UNSAFE_CLASSES_PROPERTIES}): types (and every subtype / implementation) or packages for
+ *     which <i>no member at all</i> is exposed (e.g. {@link Class}, {@link ClassLoader}, {@code java.lang.reflect}, {@code sun.misc.Unsafe},
+ *     {@link ProcessBuilder}...).</li>
+ * </ul>
+ *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
@@ -35,7 +50,31 @@ public final class LegacyDefaultMemberAccessPolicy implements MemberAccessPolicy
     public static final LegacyDefaultMemberAccessPolicy INSTANCE = new LegacyDefaultMemberAccessPolicy();
 
     private static final String UNSAFE_METHODS_PROPERTIES = "/extendedUnsafeMethods.properties";
+    private static final String UNSAFE_CLASSES_PROPERTIES = "/extendedUnsafeClasses.properties";
+
     private static final Set<Method> UNSAFE_METHODS = createUnsafeMethodsSet();
+    private static final Set<String> UNSAFE_CLASS_NAMES;
+    private static final List<String> UNSAFE_PACKAGE_PREFIXES;
+
+    static {
+        Set<String> classNames = new HashSet<>();
+        Set<String> packagePrefixes = new HashSet<>();
+        try {
+            Properties props = ClassUtil.loadProperties(LegacyDefaultMemberAccessPolicy.class, UNSAFE_CLASSES_PROPERTIES);
+            for (Object key : props.keySet()) {
+                String entry = ((String) key).trim();
+                if (entry.endsWith(".*")) {
+                    packagePrefixes.add(entry.substring(0, entry.length() - 1));
+                } else if (!entry.isEmpty()) {
+                    classNames.add(entry);
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Could not load unsafe class set", e);
+        }
+        UNSAFE_CLASS_NAMES = Collections.unmodifiableSet(classNames);
+        UNSAFE_PACKAGE_PREFIXES = List.copyOf(packagePrefixes);
+    }
 
     private static Set<Method> createUnsafeMethodsSet() {
         try {
@@ -44,7 +83,9 @@ public final class LegacyDefaultMemberAccessPolicy implements MemberAccessPolicy
             for (Object key : props.keySet()) {
                 try {
                     set.add(parseMethodSpec((String) key));
-                } catch (ClassNotFoundException | NoSuchMethodException e) {}
+                } catch (ClassNotFoundException | NoSuchMethodException e) {
+                    // do nothing (method may not exist in the running JDK)
+                }
             }
             return set;
         } catch (Exception e) {
@@ -75,7 +116,7 @@ public final class LegacyDefaultMemberAccessPolicy implements MemberAccessPolicy
 
     @Override
     public ClassMemberAccessPolicy forClass(Class<?> containingClass) {
-        return CLASS_MEMBER_ACCESS_POLICY_INSTANCE;
+        return isUnsafeClass(containingClass) ? DENY_ALL_CLASS_MEMBER_ACCESS_POLICY : BLACKLIST_CLASS_MEMBER_ACCESS_POLICY;
     }
 
     @Override
@@ -83,13 +124,63 @@ public final class LegacyDefaultMemberAccessPolicy implements MemberAccessPolicy
         return true;
     }
 
-    private static final BlacklistClassMemberAccessPolicy CLASS_MEMBER_ACCESS_POLICY_INSTANCE = new BlacklistClassMemberAccessPolicy();
+    /**
+     * A class is considered unsafe if itself, or any of its superclasses or implemented interfaces, is listed in the unsafe classes
+     * or belongs to an unsafe package. Names are compared (instead of {@link Class} instances) so that the check works whatever the
+     * classloader the type comes from, and without having to load optional types (Spring, Vert.x, ...).
+     */
+    static boolean isUnsafeClass(Class<?> clazz) {
+        if (clazz == null) {
+            return false;
+        }
+        if (clazz.isArray()) {
+            return isUnsafeClass(clazz.getComponentType());
+        }
+        Set<Class<?>> visited = new HashSet<>();
+        Deque<Class<?>> toVisit = new ArrayDeque<>();
+        toVisit.push(clazz);
+        while (!toVisit.isEmpty()) {
+            Class<?> current = toVisit.pop();
+            if (!visited.add(current)) {
+                continue;
+            }
+            if (isUnsafeName(current.getName())) {
+                return true;
+            }
+            if (current.getSuperclass() != null) {
+                toVisit.push(current.getSuperclass());
+            }
+            for (Class<?> itf : current.getInterfaces()) {
+                toVisit.push(itf);
+            }
+        }
+        return false;
+    }
+
+    private static boolean isUnsafeName(String className) {
+        if (UNSAFE_CLASS_NAMES.contains(className)) {
+            return true;
+        }
+        for (String prefix : UNSAFE_PACKAGE_PREFIXES) {
+            if (className.startsWith(prefix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static boolean isUnsafeMethod(Method method) {
+        return UNSAFE_METHODS.contains(method) || isUnsafeClass(method.getDeclaringClass()) || isUnsafeClass(method.getReturnType());
+    }
+
+    private static final ClassMemberAccessPolicy BLACKLIST_CLASS_MEMBER_ACCESS_POLICY = new BlacklistClassMemberAccessPolicy();
+    private static final ClassMemberAccessPolicy DENY_ALL_CLASS_MEMBER_ACCESS_POLICY = new DenyAllClassMemberAccessPolicy();
 
     private static class BlacklistClassMemberAccessPolicy implements ClassMemberAccessPolicy {
 
         @Override
         public boolean isMethodExposed(Method method) {
-            return !UNSAFE_METHODS.contains(method);
+            return !isUnsafeMethod(method);
         }
 
         @Override
@@ -99,7 +190,25 @@ public final class LegacyDefaultMemberAccessPolicy implements MemberAccessPolicy
 
         @Override
         public boolean isFieldExposed(Field field) {
-            return true;
+            return !isUnsafeClass(field.getType());
+        }
+    }
+
+    private static class DenyAllClassMemberAccessPolicy implements ClassMemberAccessPolicy {
+
+        @Override
+        public boolean isMethodExposed(Method method) {
+            return false;
+        }
+
+        @Override
+        public boolean isConstructorExposed(Constructor<?> constructor) {
+            return false;
+        }
+
+        @Override
+        public boolean isFieldExposed(Field field) {
+            return false;
         }
     }
 }
