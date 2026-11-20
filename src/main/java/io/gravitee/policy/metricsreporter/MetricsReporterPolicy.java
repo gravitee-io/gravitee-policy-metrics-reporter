@@ -57,7 +57,7 @@ public class MetricsReporterPolicy {
 
     private HttpClient client;
     private static final CustomTemplateLoader templateLoader = new CustomTemplateLoader();
-    private static final Configuration templateConfiguration = loadConfiguration();
+    static final Configuration templateConfiguration = loadConfiguration();
 
     public MetricsReporterPolicy(final MetricsReporterPolicyConfiguration configuration) {
         this.configuration = configuration;
