@@ -1,3 +1,10 @@
+## [4.0.2](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/compare/4.0.1...4.0.2) (2026-11-20)
+
+
+### Bug Fixes
+
+* **freemarker:** harden template sandbox against reflection-based escapes ([9575d7a](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/commit/9575d7a1663509e92fe108debae8eca1e39578d3))
+
 ## [4.0.1](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/compare/4.0.0...4.0.1) (2026-10-06)
 
 
