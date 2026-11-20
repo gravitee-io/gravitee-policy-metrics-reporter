@@ -1,3 +1,10 @@
+## [4.0.3](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/compare/4.0.2...4.0.3) (2026-11-20)
+
+
+### Bug Fixes
+
+* **deps:** bump freemarker to 2.3.35 ([3c0a7e0](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/commit/3c0a7e0b1330227800a342c6d5bdd19edf838d51))
+
 ## [4.0.2](https://github.com/gravitee-io/gravitee-policy-metrics-reporter/compare/4.0.1...4.0.2) (2026-11-20)
 
 
