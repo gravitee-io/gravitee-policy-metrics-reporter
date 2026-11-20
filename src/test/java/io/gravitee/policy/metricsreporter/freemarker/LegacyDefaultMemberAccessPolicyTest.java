@@ -18,6 +18,7 @@ package io.gravitee.policy.metricsreporter.freemarker;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import freemarker.ext.beans.ClassMemberAccessPolicy;
+import freemarker.template.utility.ClassUtil;
 import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.Field;
@@ -26,6 +27,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -135,5 +138,98 @@ class LegacyDefaultMemberAccessPolicyTest {
         assertThat(LegacyDefaultMemberAccessPolicy.isUnsafeMethod(Field.class.getMethod("get", Object.class))).isTrue();
         assertThat(LegacyDefaultMemberAccessPolicy.isUnsafeMethod(ProcessBuilder.class.getMethod("start"))).isTrue();
         assertThat(objectPolicy.isMethodExposed(Object.class.getMethod("hashCode"))).isTrue();
+    }
+
+    /**
+     * Methods listed in the deny-list that have been removed from recent JDKs. They are tolerated when they do not resolve; any
+     * other unresolvable entry is a mistake (typo, wrong signature) that would otherwise be silently ignored at runtime.
+     */
+    private static final Set<String> KNOWN_REMOVED_JDK_METHODS = Set.of(
+        // Removed in JDK 11 or earlier
+        "java.lang.Runtime.traceInstructions(boolean)",
+        "java.lang.Runtime.traceMethodCalls(boolean)",
+        "java.lang.System.runFinalizersOnExit(boolean)",
+        "java.lang.Thread.destroy()",
+        "java.lang.Thread.stop(java.lang.Throwable)",
+        // Removed in JDK 21
+        "java.lang.ThreadGroup.allowThreadSuspension(boolean)",
+        // Removed in JDK 23+
+        "java.lang.Thread.resume()",
+        "java.lang.Thread.suspend()",
+        "java.lang.ThreadGroup.resume()",
+        "java.lang.ThreadGroup.stop()"
+    );
+
+    /**
+     * Optional classes that may not be on the classpath (frameworks of the gateway, preview APIs).
+     */
+    private static final Set<String> OPTIONAL_UNSAFE_CLASSES = Set.of(
+        "java.lang.ScopedValue",
+        "org.springframework.context.ApplicationContext",
+        "org.springframework.beans.factory.BeanFactory",
+        "io.vertx.core.Vertx",
+        "io.vertx.core.Context",
+        "io.vertx.core.file.FileSystem",
+        "io.vertx.rxjava3.core.Vertx",
+        "io.vertx.rxjava3.core.file.FileSystem"
+    );
+
+    @Test
+    void should_resolve_every_unsafe_method_entry() throws Exception {
+        Properties props = ClassUtil.loadProperties(
+            LegacyDefaultMemberAccessPolicy.class,
+            LegacyDefaultMemberAccessPolicy.UNSAFE_METHODS_PROPERTIES
+        );
+        assertThat(props).isNotEmpty();
+
+        List<String> unresolved = new ArrayList<>();
+        for (Object key : props.keySet()) {
+            String entry = (String) key;
+            try {
+                LegacyDefaultMemberAccessPolicy.parseMethodSpec(entry);
+            } catch (ClassNotFoundException | NoSuchMethodException e) {
+                if (!KNOWN_REMOVED_JDK_METHODS.contains(entry)) {
+                    unresolved.add(entry + " (" + e + ")");
+                }
+            }
+        }
+        assertThat(unresolved).as("Unresolvable entries in %s", LegacyDefaultMemberAccessPolicy.UNSAFE_METHODS_PROPERTIES).isEmpty();
+    }
+
+    @Test
+    void should_only_allow_known_removed_jdk_methods_that_are_listed() throws Exception {
+        Properties props = ClassUtil.loadProperties(
+            LegacyDefaultMemberAccessPolicy.class,
+            LegacyDefaultMemberAccessPolicy.UNSAFE_METHODS_PROPERTIES
+        );
+        assertThat(props.stringPropertyNames()).containsAll(KNOWN_REMOVED_JDK_METHODS);
+    }
+
+    @Test
+    void should_resolve_every_unsafe_class_entry() throws Exception {
+        Properties props = ClassUtil.loadProperties(
+            LegacyDefaultMemberAccessPolicy.class,
+            LegacyDefaultMemberAccessPolicy.UNSAFE_CLASSES_PROPERTIES
+        );
+        assertThat(props).isNotEmpty();
+
+        List<String> invalid = new ArrayList<>();
+        for (String entry : props.stringPropertyNames()) {
+            if (entry.endsWith(".*")) {
+                if (!entry.matches("[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.\\*")) {
+                    invalid.add(entry + " (malformed package prefix)");
+                }
+                continue;
+            }
+            if (OPTIONAL_UNSAFE_CLASSES.contains(entry)) {
+                continue;
+            }
+            try {
+                Class.forName(entry, false, getClass().getClassLoader());
+            } catch (ClassNotFoundException e) {
+                invalid.add(entry + " (" + e + ")");
+            }
+        }
+        assertThat(invalid).as("Invalid entries in %s", LegacyDefaultMemberAccessPolicy.UNSAFE_CLASSES_PROPERTIES).isEmpty();
     }
 }
